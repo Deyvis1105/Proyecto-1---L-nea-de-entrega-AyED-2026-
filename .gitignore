@@ -1,7 +1,5 @@
+.gitignore
 Proyecto.exe
 output/
 .vscode/
-Acelerador.in
-Envio.in
-Planetas.in
 Pruebas.cpp
