@@ -92,9 +92,8 @@ int main(int argc, char* argv[]){
         
         //*Lectura del archivo de Acelerador.
         //*------------------------------------------------------------
-        //Primera vuelta para ver cuantos puntos de aceleración tiene el archivo
+        //Primera vuelta para ver cuantos puntos de aceleración hay en el archivo.
         string line = "";
-        // Primera vuelta: contar puntos reales
         while(getline(acelerador, line)){
             sizePoints++;
         }
@@ -102,10 +101,10 @@ int main(int argc, char* argv[]){
         sizePoints += 2;
         points = new Point[sizePoints];
 
-        // Segunda vuelta: almacenar puntos
         acelerador.clear();
         acelerador.seekg(0, std::ios::beg);
         
+        //Segunda vuelta para almacenar los puntos en un arreglo
         int itAcln = 0, tempX, tempY;
         while(acelerador >> tempX >> tempY){
             points[itAcln] = Point(tempX, tempY);
@@ -135,7 +134,6 @@ int main(int argc, char* argv[]){
         int itPlanetas = 0;
         string name; double x,y,r;
         while(getline(planetas, name)){
-
             planetas >> x >> y >> r;
             Planeta planeta(name,x,y,r);
             planetasArr[itPlanetas] = planeta;
