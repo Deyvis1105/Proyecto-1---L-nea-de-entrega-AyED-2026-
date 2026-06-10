@@ -1,16 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
-#include <chrono>
 
 using namespace std;
-
-string argv[4] = {
-    "NameProgram",
-    "Envio.in",
-    "Acelerador.in",
-    "Planetas.in"
-};
 
 ///Estructura de los puntos de aceleración.
 struct Point {
@@ -26,10 +18,10 @@ struct Point {
 ///Estructura de tipo Planeta.
 struct Planeta {
     string name;
-    float x, y, r;
+    double x, y, r;
     
     Planeta(){};
-    Planeta(string name, float x, float y, float r){
+    Planeta(string name, double x, double y, double r){
         this->name = name;
         this->x = x;
         this->y = y;
@@ -65,16 +57,6 @@ int sizePlanetas = 0;
 void searchCoeficientes(int it);
 //*--------------------------------------------------------
 
-//*Función que verifica si el arreglo de coeficientes llego al máximo.
-//*--------------------------------------------------------
-bool maxCoe();
-//*--------------------------------------------------------
-
-//*Función que verifica si la suma del valor absoluto de los coeficientes exceden el máximo de energía
-//*--------------------------------------------------------
-bool excedeMax(int max);
-//*--------------------------------------------------------
-
 //*Función que verifica si el polinomio pasa por todo los puntos.
 //*--------------------------------------------------------
 bool verifyPoints();
@@ -90,8 +72,12 @@ bool isPlanetCrash();
 bool isMinLaunch();
 //*--------------------------------------------------------
 
-int main(){
-    auto inicio = std::chrono::high_resolution_clock::now();
+//*Función que verifica si al momento de imprimir el polinomio no haya una cadena de coeficientes en 0 desde la posición del indice hasta el indice 0.
+//*--------------------------------------------------------
+bool existCadena(int it);
+//*--------------------------------------------------------
+
+int main(int argc, char* argv[]){
     
     ///Lectura de los archivos de entrada.
     ///-------------------------------------------------------------
@@ -108,6 +94,7 @@ int main(){
         //*------------------------------------------------------------
         //Primera vuelta para ver cuantos puntos de aceleración tiene el archivo
         string line = "";
+        // Primera vuelta: contar puntos reales
         while(getline(acelerador, line)){
             sizePoints++;
         }
@@ -115,15 +102,13 @@ int main(){
         sizePoints += 2;
         points = new Point[sizePoints];
 
-        //Segunda vuelta para obtener cada punto de aceleración y almacenarlo en el arrgelo.
-        int itAcln = 0;
+        // Segunda vuelta: almacenar puntos
         acelerador.clear();
         acelerador.seekg(0, std::ios::beg);
-        while(!acelerador.eof()){
-            int x, y;
-            acelerador >> x >> y;
-            Point aceleratorPoint(x,y);
-            points[itAcln] = aceleratorPoint;
+        
+        int itAcln = 0, tempX, tempY;
+        while(acelerador >> tempX >> tempY){
+            points[itAcln] = Point(tempX, tempY);
             itAcln++;
         }
         //*------------------------------------------------------------
@@ -199,13 +184,16 @@ int main(){
             if(solCoeMejor[i] == 0) continue;
     
             int exponente = (sizeCoeficientes-1-i);
-    
-            if(i != 0) cout << " ";
-    
-            if(solCoeMejor[i] < 0) cout << "-";
-            else if(i != 0) cout << "+";
-    
-            if(i != 0) cout << " ";
+
+            if(existCadena(i)){
+                if(solCoeMejor[i] < 0) cout << "-";
+            }else{
+                if(i != 0) cout << " ";
+                if(solCoeMejor[i] < 0) cout << "-";
+                else if(i != 0) cout << "+";
+                if(i != 0) cout << " ";
+            }
+            
     
             if(abs(solCoeMejor[i]) != 1 || i == sizeCoeficientes - 1){
                 cout << abs(solCoeMejor[i]);
@@ -224,13 +212,6 @@ int main(){
     delete[] solCoeActual;
     delete[] solCoeMejor;
     //*-------------------------------------------------------------
-
-    auto fin = chrono::high_resolution_clock::now();
-    
-    // Calculamos el tiempo transcurrido en microsegundos
-    auto duracion = chrono::duration_cast<chrono::microseconds>(fin - inicio);
-    
-    cout << endl << "Tiempo de ejecucion: " << (duracion.count() / 1000000) << " segundos" << endl;
 
     return 0;
 }
@@ -253,7 +234,6 @@ void searchCoeficientes(int it){
         }else{
             if(verifyPoints() && !isPlanetCrash() && isMinLaunch()){
                 for(int j = 0; j < sizeCoeficientes; j++){
-                    // cout << solCoeActual[j] << " ";
                     solCoeMejor[j] = solCoeActual[j];
                 }
             }
@@ -261,34 +241,6 @@ void searchCoeficientes(int it){
         
         energiaAcum -= abs(i);
     }
-}
-
-//Definición de la función que verifica si todos los coeficientes de un arreglo llegaron al rango máximo.
-bool maxCoe(){
-    int count = 0;
-        for(int i = 0; i < sizeCoeficientes; i++){
-        if(solCoeActual[i] == rangMax){
-            count++;
-        }
-    }
-    if(count == sizeCoeficientes){
-        return true;
-    }
-    return false;
-}
-
-bool excedeMax(int max){
-    int valor = abs(solCoeActual[0]);
-    //Verifica que la suma de los coeficientes no excedan el máximo de energía.
-    for(int i = 1; i <= max; i++){
-        valor += abs(solCoeActual[i]);
-    }
-
-    if(valor > maxEnergy){
-        return true;
-    }
-
-    return false;
 }
 
 //Definición de la función que verifica si el polinomio pasa por todos los puntos.
@@ -312,17 +264,17 @@ bool verifyPoints(){
 //Definición de la función que verifica que un polinomio no choque con los planetas dados.
 bool isPlanetCrash(){
     for(int i = 0; i < sizePlanetas; i++){
-        float c = planetasArr[i].x, d = planetasArr[i].y, r = planetasArr[i].r;
+        double c = planetasArr[i].x, d = planetasArr[i].y, r = planetasArr[i].r;
 
-        for(float x = c-r; x <= c+r; x += 0.05){
-            float y = 0;
+        for(double x = c-r; x <= c+r; x += 0.05){
+            double y = 0;
 
             for(int k = 0; k < sizeCoeficientes; k++){
                 y += solCoeActual[k] * pow(x, (sizeCoeficientes-1) - k);
             }
 
             //Se evalua que el y evaluado en el punto x esté dentro del rango de la circunferencia.
-            if(pow(x-c, 2) + pow(y-d, 2) <= pow(r,2)){
+            if(((x-c)*(x-c)) + ((y-d)*(y-d)) <= r*r){
                 return true;
             }
         }
@@ -346,5 +298,16 @@ bool isMinLaunch(){
         return true;
     }
 
+    return false;
+}
+
+bool existCadena(int it){
+    int count = 0;
+    for(int i = it-1; i >= 0; i--){
+        if(solCoeMejor[i] == 0) count++;
+    }
+
+    if(count == it)
+        return true;
     return false;
 }
