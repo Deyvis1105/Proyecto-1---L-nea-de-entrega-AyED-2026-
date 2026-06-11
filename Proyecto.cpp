@@ -128,7 +128,7 @@ int main(int argc, char* argv[]){
 
         planetasArr = new Planeta[sizePlanetas];
 
-        ///Segunda vuelta para almacenar los planetas en el arreglo.
+        //Segunda vuelta para almacenar los planetas en el arreglo.
         planetas.clear();
         planetas.seekg(0, std::ios::beg);
         int itPlanetas = 0;
@@ -150,34 +150,45 @@ int main(int argc, char* argv[]){
         cout << "No se logro abrir los archivos de entrada." << endl;
         return 0;
     }
-    ///-------------------------------------------------------------
+    //-------------------------------------------------------------
 
     //Añado los puntos de lanzamiento y entrega en el arreglo de puntos (points).
-    ///-------------------------------------------------------------
+    //-------------------------------------------------------------
     Point puntoLanzamiento(lanzX, lanzY), puntoEntrega(entregaX, entregaY);
     points[sizePoints - 2] = puntoLanzamiento;
     points[sizePoints - 1] = puntoEntrega;
-    ///-------------------------------------------------------------
+    //-------------------------------------------------------------
 
+    //Inicializa los arreglos dinámicos de los Puntos de aceleración y planetas.
+    //-------------------------------------------------------------
     sizeCoeficientes = sizePoints+1;
     solCoeActual = new int[sizeCoeficientes];
     solCoeMejor = new int[sizeCoeficientes];
+    //-------------------------------------------------------------
 
+    //Inicializa los arreglos de coeficientes "actuales" y los "mejores obtenido" en cero.
+    //-------------------------------------------------------------
     for(int i = 0; i < sizeCoeficientes; i++){
         solCoeActual[i] = 0;
         solCoeMejor[i]= 0;
     }
+    //-------------------------------------------------------------
  
     searchCoeficientes(0);
 
+    //Verifica si todos los coeficientes están en ceros mediante un contador,
+    //lo que se haya obtenido un polinomio y no haya dado un error.
+    //-------------------------------------------------------------
     int count = 0;
     for(int i = 0; i < sizeCoeficientes; i++){
         if(solCoeMejor[i] == 0) count++;
     }
+    //-------------------------------------------------------------
 
     if(count == sizeCoeficientes){
         cout << "ERR-11!_NOTFOU";
     }else{
+        
         for(int i = 0; i < sizeCoeficientes; i++){
             if(solCoeMejor[i] == 0) continue;
     
@@ -265,14 +276,17 @@ bool isPlanetCrash(){
         double c = planetasArr[i].x, d = planetasArr[i].y, r = planetasArr[i].r;
 
         for(double x = c-r; x <= c+r; x += 0.05){
-            double y = 0;
-
-            for(int k = 0; k < sizeCoeficientes; k++){
+            
+            double y = solCoeActual[0];
+            for(int k = 1; k < sizeCoeficientes; k++){
                 y += solCoeActual[k] * pow(x, (sizeCoeficientes-1) - k);
             }
 
-            //Se evalua que el y evaluado en el punto x esté dentro del rango de la circunferencia.
-            if(((x-c)*(x-c)) + ((y-d)*(y-d)) <= r*r){
+            double dx = x-c;
+            double dy = y-d;
+
+            //Se evalua que la imagen evaluado en el punto "x" esté dentro del rango de la circunferencia.
+            if((dx*dx) + (dy*dy) <= r*r){
                 return true;
             }
         }
